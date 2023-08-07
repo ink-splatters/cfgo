@@ -90,6 +90,7 @@ type clientHelloMsg struct {
 	alpnProtocols                    []string
 	scts                             bool
 	supportedVersions                []uint16
+	tlsFlags                         []byte
 	cookie                           []byte
 	keyShares                        []keyShare
 	earlyData                        bool
@@ -237,6 +238,12 @@ func (m *clientHelloMsg) marshal() ([]byte, error) {
 					exts.AddUint16(vers)
 				}
 			})
+		})
+	}
+	if len(m.tlsFlags) > 0 {
+		exts.AddUint16(extensionTLSFlags)
+		exts.AddUint16LengthPrefixed(func(exts *cryptobyte.Builder) {
+			exts.AddBytes(m.tlsFlags)
 		})
 	}
 	if len(m.cookie) > 0 {

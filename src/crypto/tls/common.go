@@ -125,6 +125,7 @@ const (
 	extensionRenegotiationInfo       uint16 = 0xff01
 	extensionECH                     uint16 = 0xfe0d // draft-ietf-tls-esni-13
 	extensionECHOuterExtensions      uint16 = 0xfd00 // draft-ietf-tls-esni-13
+	extensionTLSFlags                uint16 = 0xfe01 // draft-ietf-tls-tlsflags-12
 )
 
 // TLS signaling cipher suite values
@@ -463,6 +464,12 @@ const (
 	// Legacy signature and hash algorithms for TLS 1.2.
 	PKCS1WithSHA1 SignatureScheme = 0x0201
 	ECDSAWithSHA1 SignatureScheme = 0x0203
+)
+
+type TLSFlag uint16
+
+const (
+	FlagSupportMTLS TLSFlag = 0x50
 )
 
 // ClientHelloInfo contains information from a ClientHello message in order to
@@ -890,6 +897,8 @@ type Config struct {
 	// See https://tools.ietf.org/html/draft-ietf-tls-subcerts.
 	SupportDelegatedCredential bool
 
+	TLSFlagsSet []TLSFlag
+
 	// mutex protects sessionTicketKeys and autoSessionTicketKeys.
 	mutex sync.RWMutex
 	// sessionTicketKeys contains zero or more ticket keys. If set, it means
@@ -979,6 +988,7 @@ func (c *Config) Clone() *Config {
 		Renegotiation:               c.Renegotiation,
 		KeyLogWriter:                c.KeyLogWriter,
 		SupportDelegatedCredential:  c.SupportDelegatedCredential,
+		TLSFlagsSet:                 c.TLSFlagsSet,
 		ECHEnabled:                  c.ECHEnabled,
 		ClientECHConfigs:            c.ClientECHConfigs,
 		ServerECHProvider:           c.ServerECHProvider,
