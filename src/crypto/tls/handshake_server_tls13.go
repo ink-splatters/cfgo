@@ -43,6 +43,7 @@ type serverHandshakeStateTLS13 struct {
 	transcript      hash.Hash
 	clientFinished  []byte
 	certReq         *certificateRequestMsgTLS13
+	tlsFlags        []TLSFlag
 
 	hsTimings CFEventTLS13ServerHandshakeTimingInfo
 }
@@ -318,6 +319,12 @@ GroupSelection:
 		c.sendAlert(alertIllegalParameter)
 		return errors.New("tls: invalid client key share")
 	}
+	if len(hs.clientHello.tlsFlags) != 0 {
+		tlsFlags, err := decodeFlags(hs.clientHello.tlsFlags)
+		if err == nil {
+			hs.tlsFlags = tlsFlags
+		}
+	}
 
 	selectedProto, err := negotiateALPN(c.config.NextProtos, hs.clientHello.alpnProtocols, c.quic != nil)
 	if err != nil {
@@ -348,6 +355,23 @@ GroupSelection:
 	hs.hsTimings.ProcessClientHello = hs.hsTimings.elapsedTime()
 
 	return nil
+}
+
+func decodeFlags(flagBytes []byte) ([]TLSFlag, error) {
+	var flags []TLSFlag
+	for byteIndex, b := range flagBytes {
+		for i := 0; !(b == 0); i++ {
+			if (b & 1) == 1 {
+				flagNo := byteIndex*8 + i
+				if flagNo > int(maxTLSFlag) {
+					return nil, fmt.Errorf("TLS flag is out of range: %d", flagNo)
+				}
+				flags = append(flags, TLSFlag(flagNo))
+			}
+			b >>= 1
+		}
+	}
+	return flags, nil
 }
 
 func (hs *serverHandshakeStateTLS13) checkForResumption() error {

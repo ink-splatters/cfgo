@@ -584,6 +584,14 @@ func (m *clientHelloMsg) unmarshal(data []byte) bool {
 				}
 				m.supportedVersions = append(m.supportedVersions, vers)
 			}
+		case extensionTLSFlags:
+			for !extData.Empty() {
+				var flagByte uint8
+				if !extData.ReadUint8(&flagByte) {
+					return false
+				}
+				m.tlsFlags = append(m.tlsFlags, flagByte)
+			}
 		case extensionCookie:
 			// RFC 8446, Section 4.2.2
 			if !readUint16LengthPrefixed(&extData, &m.cookie) ||
