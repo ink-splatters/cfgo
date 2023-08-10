@@ -174,7 +174,7 @@ func (c *Conn) makeClientHello(minVersion uint16) (*clientHelloMsg, clientKeySha
 
 		hello.delegatedCredentialSupported = config.SupportDelegatedCredential
 		hello.supportedSignatureAlgorithmsDC = supportedSignatureAlgorithmsDC
-		flagBytes, err := encodeFlags(config.TLSFlagsSet)
+		flagBytes, err := encodeFlags(config.TLSFlagsSupported)
 		if err != nil {
 			return nil, nil, err
 		}

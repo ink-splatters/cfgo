@@ -897,7 +897,7 @@ type Config struct {
 	// See https://tools.ietf.org/html/draft-ietf-tls-subcerts.
 	SupportDelegatedCredential bool
 
-	TLSFlagsSet []TLSFlag
+	TLSFlagsSupported []TLSFlag
 
 	// mutex protects sessionTicketKeys and autoSessionTicketKeys.
 	mutex sync.RWMutex
@@ -988,7 +988,7 @@ func (c *Config) Clone() *Config {
 		Renegotiation:               c.Renegotiation,
 		KeyLogWriter:                c.KeyLogWriter,
 		SupportDelegatedCredential:  c.SupportDelegatedCredential,
-		TLSFlagsSet:                 c.TLSFlagsSet,
+		TLSFlagsSupported:           c.TLSFlagsSupported,
 		ECHEnabled:                  c.ECHEnabled,
 		ClientECHConfigs:            c.ClientECHConfigs,
 		ServerECHProvider:           c.ServerECHProvider,

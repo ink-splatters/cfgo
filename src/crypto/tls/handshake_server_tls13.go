@@ -363,7 +363,7 @@ func decodeFlags(flagBytes []byte) ([]TLSFlag, error) {
 		for i := 0; !(b == 0); i++ {
 			if (b & 1) == 1 {
 				flagNo := byteIndex*8 + i
-				if flagNo > int(maxTLSFlag) {
+				if flagNo >= int(maxTLSFlag) {
 					return nil, fmt.Errorf("TLS flag is out of range: %d", flagNo)
 				}
 				flags = append(flags, TLSFlag(flagNo))
