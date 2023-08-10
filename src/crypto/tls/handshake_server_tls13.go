@@ -320,7 +320,18 @@ GroupSelection:
 		return errors.New("tls: invalid client key share")
 	}
 	if len(hs.clientHello.tlsFlags) != 0 {
-		tlsFlags, err := decodeFlags(hs.clientHello.tlsFlags)
+		supportedFlags, err := encodeFlags(hs.c.config.TLSFlagsSupported)
+		if err != nil {
+			return errors.New("tls: invalid server flags")
+		}
+		var mutuallySupportedFlags []byte
+		for i, sFB := range supportedFlags {
+			if i >= len(hs.clientHello.tlsFlags) {
+				break
+			}
+			mutuallySupportedFlags = append(mutuallySupportedFlags, hs.clientHello.tlsFlags[i]&sFB)
+		}
+		tlsFlags, err := decodeFlags(mutuallySupportedFlags)
 		if err == nil {
 			hs.tlsFlags = tlsFlags
 		}
@@ -910,6 +921,11 @@ func (hs *serverHandshakeStateTLS13) sendServerParameters() error {
 }
 
 func (hs *serverHandshakeStateTLS13) requestClientCert() bool {
+	for _, flag := range hs.tlsFlags {
+		if flag == FlagSupportMTLS {
+			return true
+		}
+	}
 	return hs.c.config.ClientAuth >= RequestClientCert && !hs.usingPSK
 }
 

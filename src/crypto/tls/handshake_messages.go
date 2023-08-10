@@ -243,7 +243,9 @@ func (m *clientHelloMsg) marshal() ([]byte, error) {
 	if len(m.tlsFlags) > 0 {
 		exts.AddUint16(extensionTLSFlags)
 		exts.AddUint16LengthPrefixed(func(exts *cryptobyte.Builder) {
-			exts.AddBytes(m.tlsFlags)
+			exts.AddUint8LengthPrefixed(func(exts *cryptobyte.Builder) {
+				exts.AddBytes(m.tlsFlags)
+			})
 		})
 	}
 	if len(m.cookie) > 0 {
@@ -585,9 +587,13 @@ func (m *clientHelloMsg) unmarshal(data []byte) bool {
 				m.supportedVersions = append(m.supportedVersions, vers)
 			}
 		case extensionTLSFlags:
-			for !extData.Empty() {
+			var flagsList cryptobyte.String
+			if !extData.ReadUint8LengthPrefixed(&flagsList) || flagsList.Empty() {
+				return false
+			}
+			for !flagsList.Empty() {
 				var flagByte uint8
-				if !extData.ReadUint8(&flagByte) {
+				if !flagsList.ReadUint8(&flagByte) {
 					return false
 				}
 				m.tlsFlags = append(m.tlsFlags, flagByte)
